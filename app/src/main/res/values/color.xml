@@ -2,4 +2,6 @@
 <resources>
     <color name="appbarcolor">#607d8b</color>
     <color name="primarydark">#455a64</color>
+    <color name="window_background">#FFF5F5F5</color>
+
 </resources>

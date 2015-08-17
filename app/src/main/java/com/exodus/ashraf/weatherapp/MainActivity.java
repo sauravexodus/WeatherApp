@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
@@ -83,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            //JSONObject jsonObject = response.getJSONObject("name");
                             linearLayout.setVisibility(View.GONE);
                             nestedScrollView.setVisibility(View.VISIBLE);
                             collapsingToolbar.setTitle(response.getString("name"));
@@ -127,7 +127,14 @@ public class MainActivity extends AppCompatActivity implements
            latitude=mLastLocation.getLatitude();
             longitude=mLastLocation.getLongitude();
             //Toast.makeText(getApplication(),latitude+" and "+longitude,Toast.LENGTH_SHORT).show();
-            FetchWeather();
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    FetchWeather(); //Do something after 100ms
+                }
+            }, 4000);
         }
     }
 

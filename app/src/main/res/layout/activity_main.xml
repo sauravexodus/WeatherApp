@@ -38,6 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                app:background="?attr/colorPrimaryDark"
                 app:layout_collapseMode="pin" >
 
                 <Button
@@ -78,13 +79,15 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Info"
+                        android:text="Temperature"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
+                        android:id="@+id/tempText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:text="@string/cheese_ipsum"
+                        android:textAppearance="@style/InfoTextView"/>
 
                 </LinearLayout>
 
@@ -105,13 +108,15 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Friends"
+                        android:text="Humidity"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
+                        android:id="@+id/humidText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:text="@string/cheese_ipsum"
+                        android:textAppearance="@style/InfoTextView"/>
 
                 </LinearLayout>
 
@@ -132,13 +137,15 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Related"
+                        android:text="Pressure"
                         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
                     <TextView
+                        android:id="@+id/PresText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/cheese_ipsum" />
+                        android:text="@string/cheese_ipsum"
+                        android:textAppearance="@style/InfoTextView"/>
 
                 </LinearLayout>
 

@@ -3,6 +3,7 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <!-- Customize your theme here. -->
+        <item name="colorPrimary">#673AB7</item>
         <item name="colorPrimaryDark">@color/primarydark</item>
     </style>
 
@@ -22,7 +23,13 @@
         <item name="android:paddingTop">24dp</item>
         <item name="android:paddingBottom">24dp</item>
         <item name="android:orientation">vertical</item>
-        <item name="android:background">#212121</item>
+        <item name="android:background">#512DA8</item>
+    </style>
+
+    <style name="InfoTextView">
+        <item name="android:textSize">50sp</item>
+        <item name="android:textColor">#DDDDDD</item>
+
     </style>
 
 </resources>

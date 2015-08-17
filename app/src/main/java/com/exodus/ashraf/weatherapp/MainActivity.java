@@ -1,13 +1,18 @@
 package com.exodus.ashraf.weatherapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +38,9 @@ public class MainActivity extends AppCompatActivity implements
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     CollapsingToolbarLayout collapsingToolbar;
-    TextView temperature, humidity, pressure;
+    TextView temperature, humidity, pressure,weather;
+    LinearLayout linearLayout;
+    NestedScrollView nestedScrollView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,17 +52,21 @@ public class MainActivity extends AppCompatActivity implements
         temperature = (TextView)findViewById(R.id.tempText);
         humidity = (TextView)findViewById(R.id.humidText);
         pressure = (TextView)findViewById(R.id.PresText);
+        weather = (TextView)findViewById(R.id.tempText2);
         Typeface typeface = Typeface.createFromAsset(getAssets(),"fonts/font.ttf");
         temperature.setTypeface(typeface);
         humidity.setTypeface(typeface);
         pressure.setTypeface(typeface);
+
+        linearLayout = (LinearLayout)findViewById(R.id.linearLayout);
+        nestedScrollView = (NestedScrollView)findViewById(R.id.cards);
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
          collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
 
-        loadBackdrop();
+        loadBackdrop(R.drawable.newmage);
 
         //Loading the internet content
 
@@ -72,10 +84,13 @@ public class MainActivity extends AppCompatActivity implements
                     public void onResponse(JSONObject response) {
                         try {
                             //JSONObject jsonObject = response.getJSONObject("name");
+                            linearLayout.setVisibility(View.GONE);
+                            nestedScrollView.setVisibility(View.VISIBLE);
                             collapsingToolbar.setTitle(response.getString("name"));
                             temperature.setText(response.getJSONObject("main").getString("temp") + "°C");
+                            weather.setText(response.getJSONArray("weather").getJSONObject(0).getString("main"));
                             pressure.setText(response.getJSONObject("main").getString("pressure")+ " hPa");
-                            humidity.setText(response.getJSONObject("main").getString("humidity")+ "%");
+                            humidity.setText(response.getJSONObject("main").getString("humidity") + "%");
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -91,9 +106,9 @@ public class MainActivity extends AppCompatActivity implements
         requestQueue.add(jsonObjectRequest);
     }
 
-    private void loadBackdrop() {
+    private void loadBackdrop(int img) {
         final ImageView imageView = (ImageView) findViewById(R.id.backdrop);
-        Glide.with(this).load(R.drawable.cover).centerCrop().into(imageView);
+        Glide.with(this).load(img).centerCrop().into(imageView);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -129,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }

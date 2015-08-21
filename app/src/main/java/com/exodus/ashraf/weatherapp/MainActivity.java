@@ -11,6 +11,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextPaint;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,6 +35,8 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -42,9 +45,10 @@ public class MainActivity extends AppCompatActivity implements
     Location mLastLocation;
     LocationRequest mLocationRequest;
     CollapsingToolbarLayout collapsingToolbar;
-    TextView temperature, humidity, pressure,weather;
+    TextView temperature, humidity, pressure,weather,wind,windspeed;
     LinearLayout linearLayout;
     NestedScrollView nestedScrollView;
+    String myImage, ImageUrl, myUrl;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,10 +61,13 @@ public class MainActivity extends AppCompatActivity implements
         humidity = (TextView)findViewById(R.id.humidText);
         pressure = (TextView)findViewById(R.id.PresText);
         weather = (TextView)findViewById(R.id.tempText2);
+        wind = (TextView)findViewById(R.id.windText2);
+        windspeed = (TextView)findViewById(R.id.windText);
         Typeface typeface = Typeface.createFromAsset(getAssets(),"fonts/font.ttf");
         temperature.setTypeface(typeface);
         humidity.setTypeface(typeface);
         pressure.setTypeface(typeface);
+        windspeed.setTypeface(typeface);
 
         linearLayout = (LinearLayout)findViewById(R.id.linearLayout);
         nestedScrollView = (NestedScrollView)findViewById(R.id.cards);
@@ -68,9 +75,10 @@ public class MainActivity extends AppCompatActivity implements
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-         collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        makeCollapsingToolbarLayoutLooksGood(collapsingToolbar);
 
-        loadBackdrop(R.drawable.newmage);
+        loadBackdrop(null);
 
         //Loading the internet content
 
@@ -79,6 +87,10 @@ public class MainActivity extends AppCompatActivity implements
     private void FetchWeather(){
         String OpenUrl = "http://api.openweathermap.org/data/2.5/weather?lat="+latitude+"&lon="+
                 +longitude+"&units=metric";
+        String PlaceUrl = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+latitude+"," +
+                longitude+"&sensor=false";
+        ImageUrl = "https://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=weather%20";
+
         //Toast.makeText(getApplicationContext(),OpenUrl,Toast.LENGTH_LONG).show();
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -89,11 +101,15 @@ public class MainActivity extends AppCompatActivity implements
                         try {
                             linearLayout.setVisibility(View.GONE);
                             nestedScrollView.setVisibility(View.VISIBLE);
-                            collapsingToolbar.setTitle(response.getString("name"));
+                            //collapsingToolbar.setTitle(response.getString("name"));
                             temperature.setText(response.getJSONObject("main").getString("temp") + "°C");
                             weather.setText(response.getJSONArray("weather").getJSONObject(0).getString("main"));
                             pressure.setText(response.getJSONObject("main").getString("pressure")+ " hPa");
                             humidity.setText(response.getJSONObject("main").getString("humidity") + "%");
+                            windspeed.setText(response.getJSONObject("wind").getString("speed")+"m/sec");
+                            wind.setText(response.getJSONObject("wind").getString("deg") + " degrees");
+                            myUrl = ImageUrl + response.getJSONArray("weather").getJSONObject(0).
+                                    getString("description");
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -106,12 +122,60 @@ public class MainActivity extends AppCompatActivity implements
                 Toast.makeText(getApplicationContext(),error.toString(),Toast.LENGTH_SHORT).show();
             }
         });
+        JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, PlaceUrl, (String) null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            collapsingToolbar.setTitle(response.getJSONArray("results").getJSONObject(1).
+                                    getJSONArray("address_components").getJSONObject(1).getString("short_name"));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(),"Can't get accurate location"
+                                    ,Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+
+        JsonObjectRequest jsonObjectRequest2 = new JsonObjectRequest(Request.Method.GET, myUrl, (String) null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            myImage = response.getJSONObject("responseData").getJSONArray("results").
+                            getJSONObject(0).getString("url");
+                            loadBackdrop(myImage);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(),"Can't get photo"
+                                    ,Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+
         requestQueue.add(jsonObjectRequest);
+        requestQueue.add(jsonObjectRequest1);
+        requestQueue.add(jsonObjectRequest2);
     }
 
-    private void loadBackdrop(int img) {
+    private void loadBackdrop(String img) {
         final ImageView imageView = (ImageView) findViewById(R.id.backdrop);
-        Glide.with(this).load(img).centerCrop().into(imageView);
+        if(img!= null)
+            Glide.with(this).load(img).centerCrop().into(imageView);
+        else
+            Glide.with(this).load(R.drawable.newmage).centerCrop().into(imageView);
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -122,8 +186,8 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(100000);
+        mLocationRequest.setFastestInterval(10000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -187,6 +251,21 @@ public class MainActivity extends AppCompatActivity implements
         latitude=mLastLocation.getLatitude();
         longitude=mLastLocation.getLongitude();
         FetchWeather();
+    }
+
+    private void makeCollapsingToolbarLayoutLooksGood(CollapsingToolbarLayout collapsingToolbarLayout) {
+        try {
+            final Field field = collapsingToolbarLayout.getClass().getDeclaredField("mCollapsingTextHelper");
+            field.setAccessible(true);
+
+            final Object object = field.get(collapsingToolbarLayout);
+            final Field tpf = object.getClass().getDeclaredField("mTextPaint");
+            tpf.setAccessible(true);
+
+            ((TextPaint) tpf.get(object)).setTypeface(Typeface.createFromAsset(getAssets(), "fonts/font.ttf"));
+           // ((TextPaint) tpf.get(object)).setColor(getResources().getColor(R.color.ice));
+        } catch (Exception ignored) {
+        }
     }
 
     /*@Override

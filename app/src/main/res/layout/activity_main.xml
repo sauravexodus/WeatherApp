@@ -22,8 +22,8 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:expandedTitleMarginStart="48dp"
-            app:expandedTitleMarginEnd="64dp">
+            app:expandedTitleMarginStart="20dp"
+            app:expandedTitleMarginEnd="20dp">
 
             <ImageView
                 android:id="@+id/backdrop"
@@ -177,6 +177,41 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cheese_ipsum"
                         android:textAppearance="@style/InfoTextView"/>
+
+                </LinearLayout>
+
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/card_margin">
+
+                <LinearLayout
+                    style="@style/Widget.CardContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Wind Speed"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+
+                    <TextView
+                        android:id="@+id/windText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cheese_ipsum"
+                        android:textAppearance="@style/InfoTextView"/>
+
+                    <TextView
+                        android:id="@+id/windText2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cheese_ipsum"
+                        android:textSize="20sp"
+                        android:textColor="#DDDDDD"/>
 
                 </LinearLayout>
 

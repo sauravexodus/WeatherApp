@@ -36,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Field;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements
                 +longitude+"&units=metric";
         String PlaceUrl = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+latitude+"," +
                 longitude+"&sensor=false";
-        ImageUrl = "https://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=weather%20";
+        ImageUrl = "https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&q=weather%20";
 
         //Toast.makeText(getApplicationContext(),OpenUrl,Toast.LENGTH_LONG).show();
 
@@ -148,8 +149,10 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            Random r = new Random();
+                            int i1 = r.nextInt(4);
                             myImage = response.getJSONObject("responseData").getJSONArray("results").
-                            getJSONObject(0).getString("url");
+                            getJSONObject(i1).getString("url");
                             loadBackdrop(myImage);
                         } catch (JSONException e) {
                             e.printStackTrace();

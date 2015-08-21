@@ -26,6 +26,8 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.pnikosis.materialishprogress.ProgressWheel;
 
@@ -33,11 +35,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     double latitude,longitude;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
+    LocationRequest mLocationRequest;
     CollapsingToolbarLayout collapsingToolbar;
     TextView temperature, humidity, pressure,weather;
     LinearLayout linearLayout;
@@ -117,12 +120,19 @@ public class MainActivity extends AppCompatActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
            latitude=mLastLocation.getLatitude();
             longitude=mLastLocation.getLongitude();
@@ -134,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements
                 public void run() {
                     FetchWeather(); //Do something after 100ms
                 }
-            }, 4000);
+            }, 2000);
         }
     }
 
@@ -158,9 +168,25 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        if (mGoogleApiClient.isConnected()) {onConnected(null);
+        }
+    }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation=location;
+        latitude=mLastLocation.getLatitude();
+        longitude=mLastLocation.getLongitude();
+        FetchWeather();
     }
 
     /*@Override

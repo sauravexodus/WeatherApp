@@ -29,7 +29,11 @@
     <style name="InfoTextView">
         <item name="android:textSize">50sp</item>
         <item name="android:textColor">#DDDDDD</item>
+    </style>
 
+    <style name="InfoTextView2">
+        <item name="android:textSize">35sp</item>
+        <item name="android:textColor">#DDDDDD</item>
     </style>
 
 </resources>

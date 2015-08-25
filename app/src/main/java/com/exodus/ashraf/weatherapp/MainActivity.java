@@ -1,23 +1,26 @@
 package com.exodus.ashraf.weatherapp;
 
-import android.annotation.TargetApi;
+import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.text.TextPaint;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -30,6 +33,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,7 +44,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    double latitude,longitude;
+    String latitude,longitude;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     LocationRequest mLocationRequest;
@@ -48,32 +52,18 @@ public class MainActivity extends AppCompatActivity implements
     TextView temperature, humidity, pressure,weather,wind,windspeed;
     LinearLayout linearLayout;
     NestedScrollView nestedScrollView;
-    String myImage, ImageUrl, myUrl;
-    CardView mCardView1,mCardView2,mCardView3,mCardView4;
+    String myImage, ImageUrl, myUrl, PlaceUrl;
+    Button changeCity;
+    Boolean isLocated, flag;
+    JsonObjectRequest jsonObjectRequest1,jsonObjectRequest2;
+    RequestQueue requestQueue;
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         buildGoogleApiClient();
-
-        //Cardviews
-        mCardView1=(CardView)findViewById(R.id.cardview1);
-        mCardView2=(CardView)findViewById(R.id.cardview2);
-        mCardView3=(CardView)findViewById(R.id.cardview3);
-        mCardView4=(CardView)findViewById(R.id.cardview4);
-
-        //set radius & elevation to cards
-        mCardView1.setRadius(20);
-        mCardView2.setRadius(20);
-        mCardView3.setRadius(20);
-        mCardView4.setRadius(20);
-
-        mCardView1.setElevation(50);
-        mCardView2.setElevation(50);
-        mCardView3.setElevation(50);
-        mCardView4.setElevation(50);
+        isLocated=false;
         /* CardView Declarations */
         temperature = (TextView)findViewById(R.id.tempText);
         humidity = (TextView)findViewById(R.id.humidText);
@@ -81,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements
         weather = (TextView)findViewById(R.id.tempText2);
         wind = (TextView)findViewById(R.id.windText2);
         windspeed = (TextView)findViewById(R.id.windText);
+        changeCity = (Button)findViewById(R.id.toolbar_button);
         Typeface typeface = Typeface.createFromAsset(getAssets(),"fonts/font.ttf");
         temperature.setTypeface(typeface);
         humidity.setTypeface(typeface);
@@ -98,20 +89,38 @@ public class MainActivity extends AppCompatActivity implements
 
         loadBackdrop(null);
 
+        changeCity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(MainActivity.this).title("Change City")
+                        .content("Enter your city name to change the weather")
+                        .inputType(InputType.TYPE_TEXT_VARIATION_NORMAL)
+                        .input("e.g Delhi", "", false, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(MaterialDialog materialDialog, final CharSequence charSequence) {
+                                FetchWeather("http://api.openweathermap.org/data/2.5/weather?q="+
+                                charSequence+"&units=metric");
+                            }
+                        })
+                        .backgroundColorRes(R.color.primarydark)
+                        .show();
+                isLocated = true;
+            }
+        });
         //Loading the internet content
 
     }
 
-    private void FetchWeather(){
-        String OpenUrl = "http://api.openweathermap.org/data/2.5/weather?lat="+latitude+"&lon="+
-                +longitude+"&units=metric";
-        String PlaceUrl = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+latitude+"," +
-                longitude+"&sensor=false";
-        ImageUrl = "https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&q=weather%20";
+    private void FetchWeather(String OpenUrl){
+        flag = true;
+        if(OpenUrl == null) {
+            OpenUrl = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" +
+                    longitude + "&units=metric";
+            flag = false;
+        }
+        ImageUrl = "https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&imgtype=photo&q=weather%20";
 
-        //Toast.makeText(getApplicationContext(),OpenUrl,Toast.LENGTH_LONG).show();
-
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, OpenUrl,(String)null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -124,10 +133,65 @@ public class MainActivity extends AppCompatActivity implements
                             weather.setText(response.getJSONArray("weather").getJSONObject(0).getString("main"));
                             pressure.setText(response.getJSONObject("main").getString("pressure")+ " hPa");
                             humidity.setText(response.getJSONObject("main").getString("humidity") + "%");
-                            windspeed.setText(response.getJSONObject("wind").getString("speed")+"m/sec");
+                            windspeed.setText(response.getJSONObject("wind").getString("speed") + "m/sec");
                             wind.setText(response.getJSONObject("wind").getString("deg") + " degrees");
+                            collapsingToolbar.setTitle(response.getString("name"));
                             myUrl = ImageUrl + response.getJSONArray("weather").getJSONObject(0).
-                                    getString("description");
+                                    getString("main");
+                            latitude= response.getJSONObject("coord").getString("lat");
+                            longitude= response.getJSONObject("coord").getString("lon");
+                            PlaceUrl = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+latitude+"," +
+                                    longitude+"&sensor=false";
+
+                            jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, PlaceUrl, (String) null,
+                                    new Response.Listener<JSONObject>() {
+                                        @Override
+                                        public void onResponse(JSONObject response) {
+                                            try {
+                                                collapsingToolbar.setTitle(response.getJSONArray("results").getJSONObject(1).
+                                                        getJSONArray("address_components").getJSONObject(1).getString("short_name"));
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                                Toast.makeText(getApplicationContext(),"Can't get accurate location"
+                                                        ,Toast.LENGTH_LONG).show();
+                                            }
+
+                                        }
+                                    }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+
+                                }
+                            });
+
+                            jsonObjectRequest2 = new JsonObjectRequest(Request.Method.GET, myUrl, (String) null,
+                                    new Response.Listener<JSONObject>() {
+                                        @Override
+                                        public void onResponse(JSONObject response) {
+                                            try {
+                                                Random r = new Random();
+                                                int i1 = r.nextInt(4);
+                                                myImage = response.getJSONObject("responseData").getJSONArray("results").
+                                                        getJSONObject(i1).getString("url");
+                                                loadBackdrop(myImage);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                                Toast.makeText(getApplicationContext(),"Can't get photo"
+                                                        ,Toast.LENGTH_LONG).show();
+                                            }
+
+                                        }
+                                    }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+
+                                }
+                            });
+
+                            if(!flag)
+                                requestQueue.add(jsonObjectRequest1);
+
+                            requestQueue.add(jsonObjectRequest2);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -140,54 +204,12 @@ public class MainActivity extends AppCompatActivity implements
                 Toast.makeText(getApplicationContext(),error.toString(),Toast.LENGTH_SHORT).show();
             }
         });
-        JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, PlaceUrl, (String) null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            collapsingToolbar.setTitle(response.getJSONArray("results").getJSONObject(1).
-                                    getJSONArray("address_components").getJSONObject(1).getString("short_name"));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),"Can't get accurate location"
-                                    ,Toast.LENGTH_LONG).show();
-                        }
 
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
 
-            }
-        });
-
-        JsonObjectRequest jsonObjectRequest2 = new JsonObjectRequest(Request.Method.GET, myUrl, (String) null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            Random r = new Random();
-                            int i1 = r.nextInt(4);
-                            myImage = response.getJSONObject("responseData").getJSONArray("results").
-                            getJSONObject(i1).getString("url");
-                            loadBackdrop(myImage);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),"Can't get photo"
-                                    ,Toast.LENGTH_LONG).show();
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-        });
 
         requestQueue.add(jsonObjectRequest);
-        requestQueue.add(jsonObjectRequest1);
-        requestQueue.add(jsonObjectRequest2);
+        //requestQueue.add(jsonObjectRequest1);
+        //requestQueue.add(jsonObjectRequest2);
     }
 
     private void loadBackdrop(String img) {
@@ -217,16 +239,16 @@ public class MainActivity extends AppCompatActivity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
-           latitude=mLastLocation.getLatitude();
-            longitude=mLastLocation.getLongitude();
+        if (mLastLocation != null && !isLocated) {
+           latitude= String.valueOf(mLastLocation.getLatitude());
+            longitude= String.valueOf(mLastLocation.getLongitude());
             //Toast.makeText(getApplication(),latitude+" and "+longitude,Toast.LENGTH_SHORT).show();
 
             final Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    FetchWeather(); //Do something after 100ms
+                    FetchWeather(null); //Do something after 100ms
                 }
             }, 2000);
         }
@@ -267,10 +289,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation=location;
-        latitude=mLastLocation.getLatitude();
-        longitude=mLastLocation.getLongitude();
-        FetchWeather();
+        if(!isLocated) {
+            mLastLocation = location;
+            latitude = String.valueOf(mLastLocation.getLatitude());
+            longitude = String.valueOf(mLastLocation.getLongitude());
+            FetchWeather(null);
+        }
     }
 
     private void makeCollapsingToolbarLayoutLooksGood(CollapsingToolbarLayout collapsingToolbarLayout) {

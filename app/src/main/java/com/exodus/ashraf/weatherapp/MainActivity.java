@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements
         collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         makeCollapsingToolbarLayoutLooksGood(collapsingToolbar);
 
+        //load cover image
         loadBackdrop(null);
 
         changeCity.setOnClickListener(new View.OnClickListener() {

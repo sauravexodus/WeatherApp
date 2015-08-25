@@ -1,15 +1,15 @@
 package com.exodus.ashraf.weatherapp;
 
-import android.annotation.TargetApi;
+import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextPaint;
 import android.view.View;
@@ -30,6 +30,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,31 +50,13 @@ public class MainActivity extends AppCompatActivity implements
     LinearLayout linearLayout;
     NestedScrollView nestedScrollView;
     String myImage, ImageUrl, myUrl;
-    CardView mCardView1,mCardView2,mCardView3,mCardView4;
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         buildGoogleApiClient();
 
-        //Cardviews
-        mCardView1=(CardView)findViewById(R.id.cardview1);
-        mCardView2=(CardView)findViewById(R.id.cardview2);
-        mCardView3=(CardView)findViewById(R.id.cardview3);
-        mCardView4=(CardView)findViewById(R.id.cardview4);
-
-        //set radius & elevation to cards
-        mCardView1.setRadius(20);
-        mCardView2.setRadius(20);
-        mCardView3.setRadius(20);
-        mCardView4.setRadius(20);
-
-        mCardView1.setElevation(50);
-        mCardView2.setElevation(50);
-        mCardView3.setElevation(50);
-        mCardView4.setElevation(50);
         /* CardView Declarations */
         temperature = (TextView)findViewById(R.id.tempText);
         humidity = (TextView)findViewById(R.id.humidText);
